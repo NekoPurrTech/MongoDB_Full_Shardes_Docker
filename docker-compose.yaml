@@ -1,12 +1,11 @@
 version: '3.8'
 
 services:
-  # 配置服务器副本集
+  #config_nodes
   config_node1:
     image: mongo:4.0.5
-    container_name: mongo_config1
-    # --configsvr: 这个参数仅仅是将默认端口由27017改为27019, 如果指定--port可不添加该参数
-    command: mongod --configsvr --directoryperdb --replSet fates-mongo-config --smallfiles
+    container_name: config_node1
+    command: mongod --configsvr --directoryperdb --replSet config_cluster --smallfiles --port 27019
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node1/data:/data/configdb
@@ -15,8 +14,8 @@ services:
 
   config_node2:
     image: mongo:4.0.5
-    container_name: mongo_config2
-    command: mongod --configsvr --directoryperdb --replSet fates-mongo-config --smallfiles
+    container_name: config_node2
+    command:  mongod --configsvr --replSet config_cluster --smallfiles --port 27119
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node2/data:/data/configdb
@@ -25,19 +24,19 @@ services:
 
   config_node3:
     image: mongo:4.0.5
-    container_name: mongo_config3
-    command: mongod --configsvr --directoryperdb --replSet fates-mongo-config --smallfiles
+    container_name: config_node3
+    command: mongod --configsvr --replSet config_cluster --smallfiles --port 27219
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node3/data:/data/configdb
     networks:
       - mongo
-
+  #shard1_nodes
   # 分片1副本集
   shard1_node1:
     image: mongo:4.0.5
     container_name: shard1_node1
-    command: mongod --shardsvr --directoryperdb --replSet shard1 --port 27018
+    command: mongod --replSet shard1 --port 27018
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node1/data:/data/db
@@ -49,7 +48,7 @@ services:
   shard1_node2:
     image: mongo:4.0.5
     container_name: shard1_node2
-    command: mongod --shardsvr --directoryperdb --replSet shard1 --port 27118
+    command: mongod --replSet shard1 --port 27118
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node2/data:/data/db
@@ -61,7 +60,7 @@ services:
   shard1_node3:
     image: mongo:4.0.5
     container_name: shard1_node3
-    command: mongod --shardsvr --directoryperdb --replSet shard1 --arbiter --port 27218
+    command: mongod --replSet shard1 --port 27218
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node3/data:/data/db
@@ -70,11 +69,12 @@ services:
     networks:
       - mongo
 
-  # 分片2副本集
+  #shard2_nodes
   shard2_node1:
     image: mongo:4.0.5
     container_name: shard2_node1
-    command: mongod --shardsvr --directoryperdb --replSet shard2 --port 27318
+    command: mongod --replSet shard2 --port 27318
+
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node1/data:/data/db
@@ -86,7 +86,7 @@ services:
   shard2_node2:
     image: mongo:4.0.5
     container_name: shard2_node2
-    command: mongod --shardsvr --directoryperdb --replSet shard2 --port 27418
+    command: mongod --replSet shard2 --port 27418
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node2/data:/data/db
@@ -98,7 +98,7 @@ services:
   shard2_node3:
     image: mongo:4.0.5
     container_name: shard2_node3
-    command: mongod --shardsvr --directoryperdb --replSet shard2 --arbiter --port 27518
+    command: mongod --replSet shard2 --port 27518
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node3/data:/data/db
@@ -107,11 +107,11 @@ services:
     networks:
       - mongo
 
-  # Mongos 路由器
+  # router_nodes
   router_node1:
     image: mongo:4.0.5
-    container_name: mongos1
-    command: mongos --configdb configserver/config1:27019,config2:27020,config3:27021 --bind_ip 0.0.0.0 --port 27017
+    container_name: router_node1
+    command: mongos --configdb config_cluster/config_node1:27019,config_node2:27119,config_node3:27219 --bind_ip 0.0.0.0 --port 27017
     ports:
       - 27017:27017
     depends_on:
@@ -123,8 +123,8 @@ services:
 
   router_node2:
     image: mongo:4.0.5
-    container_name: mongos2
-    command: mongos --configdb configserver/config1:27019,config2:27020,config3:27021 --bind_ip 0.0.0.0 --port 27117
+    container_name: router_node2
+    command: mongos --configdb config_cluster/config_node1:27019,config_node2:27119,config_node3:27219 --bind_ip 0.0.0.0 --port 27117
     ports:
       - 27117:27117
     depends_on:
