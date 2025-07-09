@@ -1,11 +1,10 @@
 version: '3.8'
 
 services:
-  #config_nodes
   config_node1:
     image: mongo:4.0.5
     container_name: config_node1
-    command: mongod --configsvr --directoryperdb --replSet config_cluster --smallfiles --port 27019
+    command: mongod --configsvr --replSet config_cluster --port 27019
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node1/data:/data/configdb
@@ -15,7 +14,7 @@ services:
   config_node2:
     image: mongo:4.0.5
     container_name: config_node2
-    command:  mongod --configsvr --replSet config_cluster --smallfiles --port 27119
+    command: mongod --configsvr --replSet config_cluster --port 27119
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node2/data:/data/configdb
@@ -25,89 +24,73 @@ services:
   config_node3:
     image: mongo:4.0.5
     container_name: config_node3
-    command: mongod --configsvr --replSet config_cluster --smallfiles --port 27219
+    command: mongod --configsvr --replSet config_cluster --port 27219
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/config/node3/data:/data/configdb
     networks:
       - mongo
-  #shard1_nodes
-  # 分片1副本集
+
   shard1_node1:
     image: mongo:4.0.5
     container_name: shard1_node1
-    command: mongod --replSet shard1 --port 27018
+    command: mongod --shardsvr --replSet shard1 --port 27018
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node1/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
   shard1_node2:
     image: mongo:4.0.5
     container_name: shard1_node2
-    command: mongod --replSet shard1 --port 27118
+    command: mongod --shardsvr --replSet shard1 --port 27118
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node2/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
   shard1_node3:
     image: mongo:4.0.5
     container_name: shard1_node3
-    command: mongod --replSet shard1 --port 27218
+    command: mongod --shardsvr --replSet shard1 --port 27218
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard1/node3/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
-  #shard2_nodes
   shard2_node1:
     image: mongo:4.0.5
     container_name: shard2_node1
-    command: mongod --replSet shard2 --port 27318
-
+    command: mongod --shardsvr --replSet shard2 --port 27318
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node1/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
   shard2_node2:
     image: mongo:4.0.5
     container_name: shard2_node2
-    command: mongod --replSet shard2 --port 27418
+    command: mongod --shardsvr --replSet shard2 --port 27418
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node2/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
   shard2_node3:
     image: mongo:4.0.5
     container_name: shard2_node3
-    command: mongod --replSet shard2 --port 27518
+    command: mongod --shardsvr --replSet shard2 --port 27518
     volumes:
       - /etc/localtime:/etc/localtime
       - /mongodb/shard2/node3/data:/data/db
-    privileged: true
-    mem_limit: 16000000000
     networks:
       - mongo
 
-  # router_nodes
   router_node1:
     image: mongo:4.0.5
     container_name: router_node1
@@ -133,7 +116,6 @@ services:
       - config_node3
     networks:
       - mongo
-
 networks:
   mongo:
     external: true
